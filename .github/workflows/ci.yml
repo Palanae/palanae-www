@@ -1,0 +1,140 @@
+name: CI
+
+# Strange-loop depends on this workflow. `strange-review` refuses to apply
+# `loop-approved` to any repo with no required status checks, so the `ci` job
+# below is meant to be registered as a required check on `main`.
+#
+# It is also a token lever: every check a free GitHub runner performs is one
+# the reviewer does not spend premium tokens reasoning about.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# Least privilege — this workflow only ever reads the tree.
+permissions:
+  contents: read
+
+# A new push to the same PR makes the in-flight run obsolete. Cancel it rather
+# than paying for both.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Matches the Vercel project's Node version (24.x) so CI verifies what
+  # production actually builds with, not whatever the local machine has.
+  NODE_VERSION: "24"
+
+jobs:
+  detect:
+    name: Detect project shape
+    runs-on: ubuntu-latest
+    outputs:
+      has_app: ${{ steps.check.outputs.has_app }}
+      has_lock: ${{ steps.check.outputs.has_lock }}
+      has_ts: ${{ steps.check.outputs.has_ts }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - id: check
+        name: Look for a Node project
+        run: |
+          if [ -f package.json ]; then
+            echo "has_app=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_app=false" >> "$GITHUB_OUTPUT"
+          fi
+          if [ -f package-lock.json ]; then
+            echo "has_lock=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_lock=false" >> "$GITHUB_OUTPUT"
+          fi
+          if [ -f tsconfig.json ]; then
+            echo "has_ts=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_ts=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  verify:
+    name: Lint, typecheck, build
+    needs: detect
+    if: needs.detect.outputs.has_app == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          # setup-node's npm cache errors out when no lockfile exists, so only
+          # enable it once there is one.
+          cache: ${{ needs.detect.outputs.has_lock == 'true' && 'npm' || '' }}
+
+      - name: Install dependencies
+        run: |
+          if [ "${{ needs.detect.outputs.has_lock }}" = "true" ]; then
+            npm ci
+          else
+            echo "::warning::No package-lock.json — falling back to 'npm install'. Commit a lockfile for reproducible builds."
+            npm install
+          fi
+
+      - name: Lint
+        run: npm run lint --if-present
+
+      # Run tsc directly rather than via a script, so this works whether or not
+      # the package defines a "typecheck" script.
+      - name: Typecheck
+        if: needs.detect.outputs.has_ts == 'true'
+        run: npx --no-install tsc --noEmit
+
+      - name: Build
+        run: npm run build --if-present
+
+  # Single stable required check. Register THIS job name on the branch
+  # protection rule, never the jobs above.
+  #
+  # Two reasons it exists:
+  #  1. GitHub treats a *skipped* required job as never-completing, which hangs
+  #     the PR. This job always runs, so the check always resolves.
+  #  2. It pins one check name, so the internal job layout can change without
+  #     having to re-edit branch protection each time.
+  ci:
+    name: ci
+    needs: [detect, verify]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report result
+        run: |
+          if [ "${{ needs.detect.result }}" != "success" ]; then
+            echo "::error::Project detection failed."
+            exit 1
+          fi
+
+          if [ "${{ needs.detect.outputs.has_app }}" != "true" ]; then
+            cat >> "$GITHUB_STEP_SUMMARY" <<'EOF'
+          ### CI: no application to verify
+
+          No `package.json` in this repository, so lint/typecheck/build did not run.
+
+          **A green check here means "nothing to check", NOT "code verified".**
+          This state ends automatically once the app scaffold lands.
+          EOF
+            echo "::warning::No package.json — CI passed vacuously. Green does not mean verified until the scaffold lands."
+            exit 0
+          fi
+
+          if [ "${{ needs.verify.result }}" != "success" ]; then
+            echo "::error::Lint, typecheck, or build failed."
+            exit 1
+          fi
+
+          {
+            echo "### CI passed"
+            echo ""
+            echo "Lint, typecheck, and build all succeeded on Node ${{ env.NODE_VERSION }}."
+          } >> "$GITHUB_STEP_SUMMARY"
