@@ -33,25 +33,32 @@ export const BRAND = {
 export const CONTACT_EMAIL = "info@palanae.com";
 
 /**
- * ⚠ GATED. `app.palanae.com` sits behind the STR-24 shared-secret gate:
- * `proxy.ts` has no `config.matcher`, so `/login` is behind the doormat too,
- * and a visitor clicking Sign In today gets a secret prompt rather than a
- * login page.
+ * The tenant-facing application host.
  *
- * Flip this to `true` only after ALL of:
+ * `www.palanae.ai`, NOT `app.palanae.com` (changed 2026-08-20, before anything
+ * was live). Signed-in tenants spend their working day at this URL, so it is
+ * the address the product is actually known by; the .com is the brand front
+ * door. Worth doing precisely because a sign-in host is the hardest thing here
+ * to change later — bookmarks, saved sessions, and in-flight magic links all
+ * encode it — and it cost one API call while nothing pointed at it yet.
+ *
+ * ⚠ GATED. This host sits behind the STR-24 shared-secret gate: `proxy.ts` has
+ * no `config.matcher`, so `/login` is behind the doormat too, and a visitor
+ * clicking Sign In today gets a secret prompt rather than a login page.
+ *
+ * Flip SIGN_IN_ENABLED to `true` only after ALL of:
  *   1. `POC_ACCESS_DISABLED=true` is set in Vercel **production** (leave
  *      preview gated — preview deploys have no auth story).
  *   2. A new production deployment has shipped; env changes do not take
  *      effect on the existing one.
  *   3. A magic link has been requested and completed end-to-end ON
- *      `app.palanae.com` — arriving from `send.palanae.com`, Palanae-branded,
- *      with a callback URL on the new host.
+ *      `www.palanae.ai` — Palanae-branded, with a callback URL on this host.
  *
  * Until then the header renders a non-clickable "Client sign-in" note instead
- * of a live button. See PALANAE-LAUNCH-PLAN.md §1.1 and workstream B5–B6.
+ * of a live button.
  */
 export const SIGN_IN_ENABLED = false;
-export const SIGN_IN_URL = "https://app.palanae.com/login";
+export const SIGN_IN_URL = "https://www.palanae.ai/login";
 
 /** Anchor targets, defined once so the header nav and the sections cannot
  *  drift apart. */
