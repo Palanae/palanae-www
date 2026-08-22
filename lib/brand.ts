@@ -42,22 +42,17 @@ export const CONTACT_EMAIL = "info@palanae.com";
  * to change later — bookmarks, saved sessions, and in-flight magic links all
  * encode it — and it cost one API call while nothing pointed at it yet.
  *
- * ⚠ GATED. This host sits behind the STR-24 shared-secret gate: `proxy.ts` has
- * no `config.matcher`, so `/login` is behind the doormat too, and a visitor
- * clicking Sign In today gets a secret prompt rather than a login page.
+ * Live since 2026-08-22. The host's shared-secret gate is disabled in
+ * production only (`POC_ACCESS_DISABLED=true`; preview deploys stay gated —
+ * they have no auth story), and a magic link was completed end-to-end on
+ * `www.palanae.ai`: Palanae-branded, sent from send.palanae.com, callback on
+ * this host.
  *
- * Flip SIGN_IN_ENABLED to `true` only after ALL of:
- *   1. `POC_ACCESS_DISABLED=true` is set in Vercel **production** (leave
- *      preview gated — preview deploys have no auth story).
- *   2. A new production deployment has shipped; env changes do not take
- *      effect on the existing one.
- *   3. A magic link has been requested and completed end-to-end ON
- *      `www.palanae.ai` — Palanae-branded, with a callback URL on this host.
- *
- * Until then the header renders a non-clickable "Client sign-in" note instead
- * of a live button.
+ * If sign-in ever has to be pulled again, flip SIGN_IN_ENABLED back to
+ * `false`; the header falls back to a non-clickable "Client sign-in" note
+ * rather than a dead button.
  */
-export const SIGN_IN_ENABLED = false;
+export const SIGN_IN_ENABLED = true;
 export const SIGN_IN_URL = "https://www.palanae.ai/login";
 
 /** Anchor targets, defined once so the header nav and the sections cannot
