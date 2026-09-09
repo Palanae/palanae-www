@@ -55,12 +55,11 @@ export const CONTACT_EMAIL = "info@palanae.com";
 export const SIGN_IN_ENABLED = true;
 export const SIGN_IN_URL = "https://www.palanae.ai/login";
 
-/** Anchor targets, defined once so the header nav and the sections cannot
- *  drift apart. */
+/** Homepage section targets. Navigation uses absolute homepage anchors across routes. */
 export const SECTIONS = [
-  { id: "capture", label: "Capture" },
-  { id: "model", label: "How it's built" },
+  { id: "platform", label: "Platform" },
+  { id: "capture", label: "How it works" },
   { id: "trust", label: "Trust" },
-  { id: "boundaries", label: "Boundaries" },
+  { id: "model", label: "Your workspace" },
   { id: "contact", label: "Contact" },
 ] as const;

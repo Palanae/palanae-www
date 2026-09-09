@@ -1,54 +1,22 @@
-import { BRAND, SECTIONS, SIGN_IN_ENABLED, SIGN_IN_URL } from "@/lib/brand";
+import Link from "next/link";
+import { BRAND, SIGN_IN_ENABLED, SIGN_IN_URL } from "@/lib/brand";
 import { Container } from "./ui";
 
-/**
- * Sticky header. Text wordmark only — no commissioned mark until Class 9/42
- * clearance (PALANAE-LAUNCH-PLAN.md D4 holds logo spend, while publishing
- * establishes the common-law first-use date).
- */
-export function SiteHeader() {
+export function SiteHeader({ active = "home" }: { active?: "home" | "pricing" }) {
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/85 backdrop-blur-md">
-      <Container className="flex h-16 items-center justify-between gap-6">
-        <a
-          href="#top"
-          className="text-[15px] font-bold tracking-[0.22em] text-text-primary"
-          aria-label={`${BRAND.name} — back to top`}
-        >
-          PALANAE
-        </a>
-
-        <nav aria-label="Sections" className="hidden items-center gap-7 md:flex">
-          {SECTIONS.map((s) => (
-            <a
-              key={s.id}
-              href={`#${s.id}`}
-              className="text-button text-text-secondary transition-colors duration-150 ease-standard hover:text-text-primary"
-            >
-              {s.label}
-            </a>
-          ))}
+    <header className="site-header">
+      <a href="#main" className="skip-link">Skip to content</a>
+      <Container className="header-inner">
+        <Link href="/" className="wordmark" aria-label={`${BRAND.name} home`}>PALANAE</Link>
+        <nav aria-label="Main navigation" className="main-nav">
+          <Link href="/#platform" className="desktop-nav">Platform</Link>
+          <Link href="/#capture" className="desktop-nav">How it works</Link>
+          <Link href="/pricing" aria-current={active === "pricing" ? "page" : undefined}>Pricing</Link>
         </nav>
-
-        {SIGN_IN_ENABLED ? (
-          <a
-            href={SIGN_IN_URL}
-            className="text-button rounded-lg border border-border-strong px-4 py-2 text-text-primary transition-colors duration-150 ease-standard hover:bg-surface"
-          >
-            Sign in
-          </a>
-        ) : (
-          /*
-           * The sign-in host is not publicly reachable yet (see SIGN_IN_ENABLED
-           * in lib/brand.ts). Rendering a live button that lands on a
-           * shared-secret prompt would read as a broken product to the exact
-           * audience this page is for, so the slot holds a non-interactive note
-           * instead — same footprint, so enabling it later shifts no layout.
-           */
-          <span className="text-button whitespace-nowrap rounded-lg border border-border px-4 py-2 text-text-muted">
-            Client sign-in
-          </span>
-        )}
+        <div className="header-actions">
+          {SIGN_IN_ENABLED ? <a href={SIGN_IN_URL} className="sign-in">Sign in <span aria-hidden="true">↗</span></a> : <span className="sign-in">Client sign-in</span>}
+          <Link href="/#contact" className="header-cta">Let’s talk <span aria-hidden="true">↗</span></Link>
+        </div>
       </Container>
     </header>
   );
