@@ -76,12 +76,16 @@ platform cutover — lives in the workspace go-live runbook, not here. This repo
 
 - `/` leads with a labelled, fictional capture → review → connected-record illustration,
   then relationships, CRM, spend, AI review, configuration, and the existing contact form.
-- `/pricing` presents CRM and Spend, a Base/+AI comparison, and native expandable FAQs.
-  **No public rates are approved by this change.** All purchase actions go to the existing
-  discovery form. No checkout, trial duration, or unlimited-usage promise is introduced.
-- The Base/+AI structure follows `../palanae/MODULE-RAILS-SPEC.md` (2026-08-22).
-  Its illustrative amounts and the older $750 flat-fee draft are not public pricing inputs.
+- `/pricing` publishes the approved September 9 prices from `../palanae/PRICING-DECISION.md`:
+  CRM $350/5 users, CRM AI+ +$150; Spend Simple $25 or Enhanced $50/10 users,
+  Spend AI+ +$50. The page includes graduated CRM user bands and Spend additional-user rates.
+- The bottom Unlimited AI section explains the optional upgrade on top of AI+:
+  max($150, $30 × users in the largest covered module), plus $10/user in other covered
+  modules. Examples show full subscription totals and disclose separate quotes for bulk,
+  backfill, specialist and custom workloads. Scope and fair-use terms are confirmed before
+  subscription. All purchase actions lead to discovery; no checkout or new trial terms.
+- Publication changes the marketing offer only. Platform entitlements, Stripe prices,
+  existing subscriptions, and the platform's AI cost guard are separate implementation work.
 - The refresh preserves the product's ink/volt tokens, existing font setup, sign-in URL,
   inquiry API, and contact-form behavior. The illustrations contain no customer data.
-- Once the commercial offer is confirmed, update `app/pricing/page.tsx` consistently across
-  the module cards, comparison, and FAQ before production publication.
+- Keep `app/pricing/page.tsx` consistent with the approved decision when prices change.
